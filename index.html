@@ -84,6 +84,13 @@ nav button{
   border-radius:14px;
 }
 
+label{
+  display:block;
+  font-weight:bold;
+  margin-top:12px;
+  color:#5e1675;
+}
+
 input,select,textarea{
   width:100%;
   box-sizing:border-box;
@@ -93,8 +100,12 @@ input,select,textarea{
   border-radius:9px;
 }
 
+input[type="checkbox"]{
+  width:auto;
+}
+
 textarea{
-  height:110px;
+  height:120px;
 }
 
 button{
@@ -110,6 +121,7 @@ button{
 .btn-red{background:#c62828;}
 .btn-blue{background:#1565c0;}
 .btn-green{background:#2e7d32;}
+.btn-orange{background:#ef6c00;}
 
 .hidden{display:none;}
 
@@ -187,6 +199,14 @@ button{
   font-size:13px;
   color:#666;
 }
+
+.form-note{
+  background:#fff3e0;
+  border-left:5px solid #ef6c00;
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:12px;
+}
 </style>
 </head>
 
@@ -244,34 +264,70 @@ button{
     <h2>Admin Panel</h2>
 
     <div id="loginBox">
+      <label>Admin Password</label>
       <input type="password" id="adminPassword" placeholder="Enter admin password">
       <button onclick="adminLogin()">Login</button>
     </div>
 
     <div id="adminBox" class="hidden">
       <button onclick="showForm()">Add New Novel</button>
+      <button class="btn-orange" onclick="togglePasswordBox()">Change Admin Password</button>
       <button class="btn-red" onclick="adminLogout()">Logout</button>
+
+      <div id="passwordBox" class="section hidden">
+        <h3>Change Admin Password</h3>
+        <label>Current Admin Password</label>
+        <input type="password" id="currentPassword" placeholder="Enter current password">
+
+        <label>New Admin Password</label>
+        <input type="password" id="newPassword" placeholder="Enter new password">
+
+        <label>Confirm New Admin Password</label>
+        <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
+
+        <button class="btn-green" onclick="changeAdminPassword()">Save New Password</button>
+      </div>
 
       <div id="formBox" class="section hidden">
         <h3 id="formTitle">Add Novel</h3>
 
-        <label><input type="checkbox" id="checkBox"> Read</label>
+        <div class="form-note">
+          Fill in or update the novel information below. Only Admin can add, edit, delete, and upload cover images.
+        </div>
 
+        <label>Read Status</label>
+        <label><input type="checkbox" id="checkBox"> Mark as Read</label>
+
+        <label>Borrow Status</label>
         <select id="Status">
           <option value="Available">Available</option>
           <option value="Borrowed">Borrowed</option>
         </select>
 
-        <input id="name" placeholder="Novel Name">
-        <input id="Country" placeholder="Country">
-        <input id="Publisher" placeholder="Publisher">
-        <input id="Year" placeholder="Year">
-        <input id="WriterTranslator" placeholder="Writer / Translator">
-        <input id="Couple" placeholder="Main Couple">
-        <input id="Genres" placeholder="Genres">
+        <label>Novel Name</label>
+        <input id="name" placeholder="Example: His Honey">
 
+        <label>Country</label>
+        <input id="Country" placeholder="Example: Thailand / China / Korea / Japan">
+
+        <label>Publisher</label>
+        <input id="Publisher" placeholder="Publisher name">
+
+        <label>Publication Year</label>
+        <input id="Year" placeholder="Example: 2024">
+
+        <label>Writer / Translator</label>
+        <input id="WriterTranslator" placeholder="Writer or translator name">
+
+        <label>Main Couple</label>
+        <input id="Couple" placeholder="Main couple / characters">
+
+        <label>Genres</label>
+        <input id="Genres" placeholder="Example: Romance, Drama, Fantasy">
+
+        <label>Total Score</label>
         <select id="TotalScore">
-          <option value="">Total Score</option>
+          <option value="">Select Total Score</option>
           <option>⭐</option>
           <option>⭐⭐</option>
           <option>⭐⭐⭐</option>
@@ -279,8 +335,9 @@ button{
           <option>⭐⭐⭐⭐⭐</option>
         </select>
 
+        <label>NC Score</label>
         <select id="NCScore">
-          <option value="">NC Score</option>
+          <option value="">Select NC Score</option>
           <option>⭐</option>
           <option>⭐⭐</option>
           <option>⭐⭐⭐</option>
@@ -288,7 +345,10 @@ button{
           <option>⭐⭐⭐⭐⭐</option>
         </select>
 
-        <textarea id="Synopsis" placeholder="Synopsis"></textarea>
+        <label>Synopsis</label>
+        <textarea id="Synopsis" placeholder="Novel synopsis"></textarea>
+
+        <label>Cover Image Upload</label>
         <input type="file" id="CoverFile" accept="image/*">
 
         <button class="btn-green" onclick="saveNovel()">Save</button>
@@ -314,12 +374,20 @@ button{
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycby0kD-tsevNKbEzQn9lQnMa5sR2iqRLSKruIPFBqd7hYaZGqtlxlQ_M4vdhay2jbE1T/exec";
-const ADMIN_PASSWORD = "Admin123";
 
 let novels = [];
 let isAdmin = false;
+let currentAdminPassword = "";
 let editRowNumber = null;
 let oldCoverURL = "";
+
+async function postAPI(data){
+  const res = await fetch(API_URL, {
+    method:"POST",
+    body:JSON.stringify(data)
+  });
+  return await res.json();
+}
 
 async function loadNovels(){
   const res = await fetch(API_URL);
@@ -401,6 +469,8 @@ function renderLibrary(){
       <p><b>Country:</b> ${n.Country || "-"}</p>
       <p><b>Publisher:</b> ${n.Publisher || "-"}</p>
       <p><b>Writer:</b> ${n["Writer/Translator"] || "-"}</p>
+      <p><b>Total Score:</b> <span class="star">${scoreText(n["Total Score"])}</span></p>
+      <p><b>NC Score:</b> <span class="star">${scoreText(n["NC Score"])}</span></p>
       <button onclick="openDetail(${n.rowNumber})">View Detail</button>
     </div>
   `).join("");
@@ -433,21 +503,62 @@ function closeDetail(){
   document.getElementById("detailModal").style.display = "none";
 }
 
-function adminLogin(){
-  if(document.getElementById("adminPassword").value === ADMIN_PASSWORD){
+async function adminLogin(){
+  const password = document.getElementById("adminPassword").value;
+
+  const result = await postAPI({
+    action:"login",
+    password:password
+  });
+
+  if(result.success){
     isAdmin = true;
+    currentAdminPassword = password;
     document.getElementById("loginBox").classList.add("hidden");
     document.getElementById("adminBox").classList.remove("hidden");
     renderAdminList();
   }else{
-    alert("Incorrect password");
+    alert(result.message || "Incorrect password");
   }
 }
 
 function adminLogout(){
   isAdmin = false;
+  currentAdminPassword = "";
   document.getElementById("loginBox").classList.remove("hidden");
   document.getElementById("adminBox").classList.add("hidden");
+  document.getElementById("adminPassword").value = "";
+}
+
+function togglePasswordBox(){
+  document.getElementById("passwordBox").classList.toggle("hidden");
+}
+
+async function changeAdminPassword(){
+  const currentPassword = document.getElementById("currentPassword").value;
+  const newPassword = document.getElementById("newPassword").value;
+  const confirmNewPassword = document.getElementById("confirmNewPassword").value;
+
+  if(newPassword !== confirmNewPassword){
+    alert("New password and confirmation do not match");
+    return;
+  }
+
+  const result = await postAPI({
+    action:"changePassword",
+    currentPassword:currentPassword,
+    newPassword:newPassword
+  });
+
+  alert(result.message);
+
+  if(result.success){
+    currentAdminPassword = newPassword;
+    document.getElementById("currentPassword").value = "";
+    document.getElementById("newPassword").value = "";
+    document.getElementById("confirmNewPassword").value = "";
+    document.getElementById("passwordBox").classList.add("hidden");
+  }
 }
 
 function showForm(){
@@ -471,7 +582,19 @@ function clearForm(){
   document.getElementById("CoverFile").value = "";
 }
 
+function confirmAdminPassword(message){
+  const password = prompt(message || "Enter admin password to confirm:");
+  if(!password) return null;
+  return password;
+}
+
 function editNovel(rowNumber){
+  const confirmPassword = confirmAdminPassword("Enter admin password to edit this novel:");
+  if(confirmPassword !== currentAdminPassword){
+    alert("Incorrect admin password");
+    return;
+  }
+
   const n = novels.find(x=>Number(x.rowNumber)===Number(rowNumber));
   if(!n) return;
 
@@ -508,6 +631,7 @@ async function saveNovel(){
 
   const data = {
     action: editRowNumber ? "update" : "add",
+    adminPassword: currentAdminPassword,
     rowNumber: editRowNumber,
     check: document.getElementById("checkBox").checked,
     Status: document.getElementById("Status").value,
@@ -526,12 +650,14 @@ async function saveNovel(){
     CoverName: coverName
   };
 
-  await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify(data)
-  });
+  const result = await postAPI(data);
 
-  alert("Saved successfully");
+  if(!result.success){
+    alert(result.message || "Save failed");
+    return;
+  }
+
+  alert(result.message || "Saved successfully");
   hideForm();
   await loadNovels();
 }
@@ -546,17 +672,26 @@ function toBase64(file){
 }
 
 async function deleteNovel(rowNumber){
+  const confirmPassword = confirmAdminPassword("Enter admin password to delete this novel:");
+  if(confirmPassword !== currentAdminPassword){
+    alert("Incorrect admin password");
+    return;
+  }
+
   if(!confirm("Delete this novel?")) return;
 
-  await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      action:"delete",
-      rowNumber:rowNumber
-    })
+  const result = await postAPI({
+    action:"delete",
+    adminPassword: currentAdminPassword,
+    rowNumber:rowNumber
   });
 
-  alert("Deleted successfully");
+  if(!result.success){
+    alert(result.message || "Delete failed");
+    return;
+  }
+
+  alert(result.message || "Deleted successfully");
   await loadNovels();
 }
 
@@ -568,6 +703,8 @@ function renderAdminList(){
       <h3>${n.name || "-"}</h3>
       <p class="small">${n["Writer/Translator"] || "-"} | ${n.Genres || "-"}</p>
       <p><b>Borrow Status:</b> <span class="${isBorrowed(n) ? 'borrowed':'available'}">${n.Status || "Available"}</span></p>
+      <p><b>Total Score:</b> <span class="star">${scoreText(n["Total Score"])}</span></p>
+      <p><b>NC Score:</b> <span class="star">${scoreText(n["NC Score"])}</span></p>
       <button class="btn-blue" onclick="editNovel(${n.rowNumber})">Edit</button>
       <button class="btn-red" onclick="deleteNovel(${n.rowNumber})">Delete</button>
     </div>
