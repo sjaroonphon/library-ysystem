@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>คลังหนังสือออนไลน์</title>
+<style>
+body{
+    font-family:Arial;
+    background:#f5f5f5;
+    margin:20px;
+}
+
+h1{
+    color:#2c3e50;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:10px;
+}
+
+th{
+    background:#34495e;
+    color:white;
+}
+
+button{
+    padding:8px 15px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📚 คลังหนังสือออนไลน์</h1>
+
+<button onclick="adminLogin()">Login Admin</button>
+<button onclick="addBook()">เพิ่มหนังสือ</button>
+
+<br><br>
+
+<table>
+<thead>
+<tr>
+<th>รหัส</th>
+<th>ชื่อหนังสือ</th>
+<th>สถานะ</th>
+</tr>
+</thead>
+
+<tbody id="bookTable"></tbody>
+
+</table>
+
+<script>
+
+let isAdmin = false;
+
+let books = [
+{
+id:"BK001",
+title:"Energy Management",
+status:"ว่าง"
+}
+];
+
+function loadBooks(){
+
+let html="";
+
+books.forEach(book=>{
+
+html += `
+<tr>
+<td>${book.id}</td>
+<td>${book.title}</td>
+<td>${book.status}</td>
+</tr>
+`;
+
+});
+
+document.getElementById("bookTable").innerHTML = html;
+}
+
+function adminLogin(){
+
+let password = prompt("รหัส Admin");
+
+if(password==="Admin123"){
+isAdmin=true;
+alert("เข้าสู่ระบบสำเร็จ");
+}else{
+alert("รหัสไม่ถูกต้อง");
+}
+
+}
+
+function addBook(){
+
+if(!isAdmin){
+alert("กรุณา Login Admin");
+return;
+}
+
+let title = prompt("ชื่อหนังสือ");
+
+if(title){
+
+books.push({
+id:"BK"+String(books.length+1).padStart(3,"0"),
+title:title,
+status:"ว่าง"
+});
+
+loadBooks();
+}
+
+}
+
+loadBooks();
+
+</script>
+
+</body>
+</html>
