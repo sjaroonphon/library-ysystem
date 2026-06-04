@@ -9,91 +9,174 @@
 body{
   margin:0;
   font-family:Arial, sans-serif;
-  background:#faf5fb;
-  color:#333;
+  background:#fbf4fb;
+  color:#222;
 }
+
 header{
-  background:linear-gradient(135deg,#7b1fa2,#c2185b);
+  background:linear-gradient(135deg,#7b1fa2,#ec407a);
   color:white;
-  padding:25px;
+  padding:26px;
   text-align:center;
 }
+
 nav{
   background:white;
   padding:12px;
   text-align:center;
   box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  position:sticky;
+  top:0;
+  z-index:10;
 }
+
 nav button{
-  margin:5px;
-  padding:10px 18px;
-  border:none;
-  border-radius:20px;
   background:#8e24aa;
   color:white;
+  border:none;
+  border-radius:20px;
+  padding:10px 18px;
+  margin:4px;
   cursor:pointer;
 }
+
 .container{
   width:95%;
-  max-width:1200px;
+  max-width:1250px;
   margin:20px auto;
 }
+
 .dashboard{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-  gap:15px;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:16px;
 }
+
 .card,.section,.novel-card{
   background:white;
-  border-radius:16px;
+  border-radius:18px;
   padding:18px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.1);
+  box-shadow:0 3px 12px rgba(0,0,0,0.1);
 }
+
 .card h3{
   margin:0;
   color:#8e24aa;
 }
+
 .number{
   font-size:34px;
   font-weight:bold;
-  margin-top:10px;
+  margin-top:12px;
 }
+
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
   gap:18px;
 }
+
 .cover{
   width:100%;
   height:310px;
   object-fit:cover;
-  border-radius:14px;
   background:#ddd;
+  border-radius:14px;
 }
+
 input,select,textarea{
   width:100%;
+  box-sizing:border-box;
   padding:10px;
   margin:6px 0;
   border:1px solid #ccc;
-  border-radius:8px;
-  box-sizing:border-box;
+  border-radius:9px;
 }
-textarea{height:100px;}
+
+textarea{
+  height:110px;
+}
+
 button{
-  padding:9px 14px;
-  border:none;
-  border-radius:8px;
   background:#8e24aa;
   color:white;
-  cursor:pointer;
+  border:none;
+  border-radius:8px;
+  padding:9px 14px;
   margin:3px;
+  cursor:pointer;
 }
+
 .btn-red{background:#c62828;}
 .btn-blue{background:#1565c0;}
+.btn-green{background:#2e7d32;}
+
 .hidden{display:none;}
-.read{color:green;font-weight:bold;}
-.unread{color:red;font-weight:bold;}
-.small{font-size:13px;color:#666;}
+
+.star{
+  color:#ffb300;
+  font-size:20px;
+  letter-spacing:1px;
+}
+
+.read{
+  color:green;
+  font-weight:bold;
+}
+
+.unread{
+  color:red;
+  font-weight:bold;
+}
+
+.progress-bar{
+  width:100%;
+  height:25px;
+  background:#eee;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.progress-fill{
+  height:100%;
+  background:linear-gradient(135deg,#8e24aa,#ec407a);
+  color:white;
+  text-align:center;
+  line-height:25px;
+  font-weight:bold;
+}
+
+.stat-row{
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid #eee;
+  padding:8px 0;
+}
+
+.detail-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.65);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:99;
+}
+
+.detail-box{
+  background:white;
+  width:92%;
+  max-width:850px;
+  max-height:90vh;
+  overflow:auto;
+  border-radius:18px;
+  padding:22px;
+}
+
+.small{
+  font-size:13px;
+  color:#666;
+}
 </style>
 </head>
 
@@ -114,16 +197,43 @@ button{
 
 <div id="dashboardPage">
   <div class="dashboard">
-    <div class="card"><h3>Total Novels</h3><div class="number" id="totalNovels">0</div></div>
-    <div class="card"><h3>Read Novels</h3><div class="number" id="readNovels">0</div></div>
-    <div class="card"><h3>Unread Novels</h3><div class="number" id="unreadNovels">0</div></div>
-    <div class="card"><h3>Average Score</h3><div class="number" id="avgScore">0</div></div>
-    <div class="card"><h3>Average NC Score</h3><div class="number" id="avgNCScore">0</div></div>
+    <div class="card"><h3>📚 Total Novels</h3><div class="number" id="totalNovels">0</div></div>
+    <div class="card"><h3>☑ Read Novels</h3><div class="number" id="readNovels">0</div></div>
+    <div class="card"><h3>☐ Unread Novels</h3><div class="number" id="unreadNovels">0</div></div>
+    <div class="card"><h3>⭐ Average Score</h3><div class="number star" id="avgScore">-</div></div>
+    <div class="card"><h3>🔥 Average NC Score</h3><div class="number star" id="avgNCScore">-</div></div>
+  </div>
+
+  <div class="section">
+    <h2>📊 Reading Progress</h2>
+    <div class="progress-bar">
+      <div class="progress-fill" id="readingProgress">0%</div>
+    </div>
   </div>
 
   <div class="section">
     <h2>🏆 Top Rated Novels</h2>
     <div id="topRated"></div>
+  </div>
+
+  <div class="section">
+    <h2>🔥 Highest NC Score Novels</h2>
+    <div id="topNC"></div>
+  </div>
+
+  <div class="section">
+    <h2>📚 Top Rated Covers</h2>
+    <div class="grid" id="topCoverList"></div>
+  </div>
+
+  <div class="section">
+    <h2>📊 Genre Statistics</h2>
+    <div id="genreStats"></div>
+  </div>
+
+  <div class="section">
+    <h2>🌏 Country Statistics</h2>
+    <div id="countryStats"></div>
   </div>
 </div>
 
@@ -151,11 +261,7 @@ button{
       <div id="formBox" class="section hidden">
         <h3 id="formTitle">Add Novel</h3>
 
-        <select id="check">
-          <option value="Unread">Unread</option>
-          <option value="Read">Read</option>
-        </select>
-
+        <label><input type="checkbox" id="checkBox"> Read</label>
         <input id="name" placeholder="Novel Name">
         <input id="Country" placeholder="Country">
         <input id="Publisher" placeholder="Publisher">
@@ -163,12 +269,26 @@ button{
         <input id="WriterTranslator" placeholder="Writer / Translator">
         <input id="Couple" placeholder="Main Couple">
         <input id="Genres" placeholder="Genres">
-        <input id="TotalScore" placeholder="Total Score">
-        <input id="NCScore" placeholder="NC Score">
+        <select id="TotalScore">
+          <option value="">Total Score</option>
+          <option>⭐</option>
+          <option>⭐⭐</option>
+          <option>⭐⭐⭐</option>
+          <option>⭐⭐⭐⭐</option>
+          <option>⭐⭐⭐⭐⭐</option>
+        </select>
+        <select id="NCScore">
+          <option value="">NC Score</option>
+          <option>⭐</option>
+          <option>⭐⭐</option>
+          <option>⭐⭐⭐</option>
+          <option>⭐⭐⭐⭐</option>
+          <option>⭐⭐⭐⭐⭐</option>
+        </select>
         <textarea id="Synopsis" placeholder="Synopsis"></textarea>
         <input type="file" id="CoverFile" accept="image/*">
 
-        <button onclick="saveNovel()">Save</button>
+        <button class="btn-green" onclick="saveNovel()">Save</button>
         <button class="btn-red" onclick="hideForm()">Cancel</button>
       </div>
 
@@ -182,6 +302,13 @@ button{
 
 </div>
 
+<div class="detail-modal" id="detailModal">
+  <div class="detail-box">
+    <button class="btn-red" onclick="closeDetail()">Close</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycby0kD-tsevNKbEzQn9lQnMa5sR2iqRLSKruIPFBqd7hYaZGqtlxlQ_M4vdhay2jbE1T/exec";
 const ADMIN_PASSWORD = "Admin123";
@@ -192,16 +319,11 @@ let editRowNumber = null;
 let oldCoverURL = "";
 
 async function loadNovels(){
-  try{
-    const res = await fetch(API_URL);
-    novels = await res.json();
-    renderDashboard();
-    renderLibrary();
-    renderAdminList();
-  }catch(err){
-    alert("Cannot load data from Google Sheet");
-    console.error(err);
-  }
+  const res = await fetch(API_URL);
+  novels = await res.json();
+  renderDashboard();
+  renderLibrary();
+  renderAdminList();
 }
 
 function showPage(id){
@@ -211,37 +333,84 @@ function showPage(id){
   document.getElementById(id).classList.remove("hidden");
 }
 
+function scoreValue(score){
+  return (String(score || "").match(/⭐/g) || []).length;
+}
+
+function star(score){
+  return String(score || "").trim() || "-";
+}
+
+function avgStars(field){
+  const vals = novels.map(n=>scoreValue(n[field])).filter(v=>v>0);
+  if(vals.length === 0) return "-";
+  const avg = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  return "⭐".repeat(avg);
+}
+
 function renderDashboard(){
   const total = novels.length;
-  const read = novels.filter(n => String(n.check).toLowerCase() === "read").length;
+  const read = novels.filter(n=>n.checkValue === true).length;
   const unread = total - read;
+  const progress = total ? Math.round((read/total)*100) : 0;
 
   document.getElementById("totalNovels").innerText = total;
   document.getElementById("readNovels").innerText = read;
   document.getElementById("unreadNovels").innerText = unread;
-  document.getElementById("avgScore").innerText = average(novels.map(n => Number(n["Total Score"])));
-  document.getElementById("avgNCScore").innerText = average(novels.map(n => Number(n["NC Score"])));
+  document.getElementById("avgScore").innerText = avgStars("Total Score");
+  document.getElementById("avgNCScore").innerText = avgStars("NC Score");
 
-  const top = [...novels]
-    .filter(n => n["Total Score"])
-    .sort((a,b)=>Number(b["Total Score"]) - Number(a["Total Score"]))
+  document.getElementById("readingProgress").style.width = progress + "%";
+  document.getElementById("readingProgress").innerText = progress + "%";
+
+  const topRated = [...novels].filter(n=>scoreValue(n["Total Score"])>0)
+    .sort((a,b)=>scoreValue(b["Total Score"])-scoreValue(a["Total Score"]))
     .slice(0,10);
 
-  document.getElementById("topRated").innerHTML = top.map((n,i)=>`
-    <p>${i+1}. <b>${n.name || "-"}</b> — ${n["Total Score"] || "-"}</p>
+  document.getElementById("topRated").innerHTML = topRated.map((n,i)=>`
+    <p>${i+1}. <b>${n.name}</b><br><span class="star">${star(n["Total Score"])}</span></p>
   `).join("");
+
+  const topNC = [...novels].filter(n=>scoreValue(n["NC Score"])>0)
+    .sort((a,b)=>scoreValue(b["NC Score"])-scoreValue(a["NC Score"]))
+    .slice(0,10);
+
+  document.getElementById("topNC").innerHTML = topNC.map((n,i)=>`
+    <p>${i+1}. <b>${n.name}</b><br><span class="star">${star(n["NC Score"])}</span></p>
+  `).join("");
+
+  document.getElementById("topCoverList").innerHTML = topRated.slice(0,6).map(n=>`
+    <div class="novel-card">
+      ${n.CoverURL ? `<img class="cover" src="${n.CoverURL}">` : `<div class="cover"></div>`}
+      <h3>${n.name}</h3>
+      <p class="star">${star(n["Total Score"])}</p>
+    </div>
+  `).join("");
+
+  renderStats("Genres","genreStats");
+  renderStats("Country","countryStats");
 }
 
-function average(arr){
-  const nums = arr.filter(n => !isNaN(n) && n > 0);
-  if(nums.length === 0) return "0";
-  return (nums.reduce((a,b)=>a+b,0) / nums.length).toFixed(2);
+function renderStats(field,id){
+  const count = {};
+  novels.forEach(n=>{
+    String(n[field] || "").split(",").forEach(x=>{
+      const key = x.trim();
+      if(key) count[key] = (count[key] || 0) + 1;
+    });
+  });
+
+  document.getElementById(id).innerHTML = Object.entries(count)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,12)
+    .map(([k,v])=>`<div class="stat-row"><span>${k}</span><b>${v}</b></div>`)
+    .join("");
 }
 
 function renderLibrary(){
   const keyword = (document.getElementById("searchInput")?.value || "").toLowerCase();
 
-  const filtered = novels.filter(n =>
+  const filtered = novels.filter(n=>
     String(n.name).toLowerCase().includes(keyword) ||
     String(n.Country).toLowerCase().includes(keyword) ||
     String(n.Publisher).toLowerCase().includes(keyword) ||
@@ -254,23 +423,44 @@ function renderLibrary(){
     <div class="novel-card">
       ${n.CoverURL ? `<img class="cover" src="${n.CoverURL}">` : `<div class="cover"></div>`}
       <h3>${n.name || "-"}</h3>
-      <p><b>Status:</b> <span class="${String(n.check).toLowerCase()==='read'?'read':'unread'}">${n.check || "-"}</span></p>
+      <p><b>Status:</b> <span class="${n.checkValue ? 'read':'unread'}">${n.checkValue ? 'Read':'Unread'}</span></p>
       <p><b>Country:</b> ${n.Country || "-"}</p>
       <p><b>Publisher:</b> ${n.Publisher || "-"}</p>
-      <p><b>Year:</b> ${n.Year || "-"}</p>
-      <p><b>Writer/Translator:</b> ${n["Writer/Translator"] || "-"}</p>
-      <p><b>Couple:</b> ${n.Couple || "-"}</p>
-      <p><b>Genres:</b> ${n.Genres || "-"}</p>
-      <p><b>Total Score:</b> ${n["Total Score"] || "-"}</p>
-      <p><b>NC Score:</b> ${n["NC Score"] || "-"}</p>
-      <p><b>Synopsis:</b> ${n.Synopsis || "-"}</p>
+      <p><b>Writer:</b> ${n["Writer/Translator"] || "-"}</p>
+      <p><b>Total Score:</b> <span class="star">${star(n["Total Score"])}</span></p>
+      <button onclick="openDetail(${n.rowNumber})">View Detail</button>
     </div>
   `).join("");
 }
 
+function openDetail(rowNumber){
+  const n = novels.find(x=>Number(x.rowNumber)===Number(rowNumber));
+  if(!n) return;
+
+  document.getElementById("detailContent").innerHTML = `
+    ${n.CoverURL ? `<img class="cover" src="${n.CoverURL}">` : ""}
+    <h2>${n.name || "-"}</h2>
+    <p><b>Status:</b> ${n.checkValue ? "Read":"Unread"}</p>
+    <p><b>Country:</b> ${n.Country || "-"}</p>
+    <p><b>Publisher:</b> ${n.Publisher || "-"}</p>
+    <p><b>Year:</b> ${n.Year || "-"}</p>
+    <p><b>Writer/Translator:</b> ${n["Writer/Translator"] || "-"}</p>
+    <p><b>Couple:</b> ${n.Couple || "-"}</p>
+    <p><b>Genres:</b> ${n.Genres || "-"}</p>
+    <p><b>Total Score:</b> <span class="star">${star(n["Total Score"])}</span></p>
+    <p><b>NC Score:</b> <span class="star">${star(n["NC Score"])}</span></p>
+    <p><b>Synopsis:</b><br>${n.Synopsis || "-"}</p>
+  `;
+
+  document.getElementById("detailModal").style.display = "flex";
+}
+
+function closeDetail(){
+  document.getElementById("detailModal").style.display = "none";
+}
+
 function adminLogin(){
-  const pass = document.getElementById("adminPassword").value;
-  if(pass === ADMIN_PASSWORD){
+  if(document.getElementById("adminPassword").value === ADMIN_PASSWORD){
     isAdmin = true;
     document.getElementById("loginBox").classList.add("hidden");
     document.getElementById("adminBox").classList.remove("hidden");
@@ -289,8 +479,8 @@ function adminLogout(){
 function showForm(){
   editRowNumber = null;
   oldCoverURL = "";
-  document.getElementById("formTitle").innerText = "Add Novel";
   clearForm();
+  document.getElementById("formTitle").innerText = "Add Novel";
   document.getElementById("formBox").classList.remove("hidden");
 }
 
@@ -299,29 +489,21 @@ function hideForm(){
 }
 
 function clearForm(){
-  document.getElementById("check").value = "Unread";
-  document.getElementById("name").value = "";
-  document.getElementById("Country").value = "";
-  document.getElementById("Publisher").value = "";
-  document.getElementById("Year").value = "";
-  document.getElementById("WriterTranslator").value = "";
-  document.getElementById("Couple").value = "";
-  document.getElementById("Genres").value = "";
-  document.getElementById("TotalScore").value = "";
-  document.getElementById("NCScore").value = "";
-  document.getElementById("Synopsis").value = "";
+  document.getElementById("checkBox").checked = false;
+  ["name","Country","Publisher","Year","WriterTranslator","Couple","Genres","TotalScore","NCScore","Synopsis"].forEach(id=>{
+    document.getElementById(id).value = "";
+  });
   document.getElementById("CoverFile").value = "";
 }
 
 function editNovel(rowNumber){
-  const n = novels.find(x => Number(x.rowNumber) === Number(rowNumber));
+  const n = novels.find(x=>Number(x.rowNumber)===Number(rowNumber));
   if(!n) return;
 
   editRowNumber = n.rowNumber;
   oldCoverURL = n.CoverURL || "";
 
-  document.getElementById("formTitle").innerText = "Edit Novel";
-  document.getElementById("check").value = n.check || "Unread";
+  document.getElementById("checkBox").checked = n.checkValue;
   document.getElementById("name").value = n.name || "";
   document.getElementById("Country").value = n.Country || "";
   document.getElementById("Publisher").value = n.Publisher || "";
@@ -334,12 +516,12 @@ function editNovel(rowNumber){
   document.getElementById("Synopsis").value = n.Synopsis || "";
   document.getElementById("CoverFile").value = "";
 
+  document.getElementById("formTitle").innerText = "Edit Novel";
   document.getElementById("formBox").classList.remove("hidden");
 }
 
 async function saveNovel(){
   const file = document.getElementById("CoverFile").files[0];
-
   let coverBase64 = "";
   let coverName = "";
 
@@ -351,7 +533,7 @@ async function saveNovel(){
   const data = {
     action: editRowNumber ? "update" : "add",
     rowNumber: editRowNumber,
-    check: document.getElementById("check").value,
+    check: document.getElementById("checkBox").checked,
     name: document.getElementById("name").value,
     Country: document.getElementById("Country").value,
     Publisher: document.getElementById("Publisher").value,
@@ -380,7 +562,7 @@ async function saveNovel(){
 function toBase64(file){
   return new Promise((resolve,reject)=>{
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onload = ()=>resolve(reader.result);
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -408,6 +590,7 @@ function renderAdminList(){
     <div class="card">
       <h3>${n.name || "-"}</h3>
       <p class="small">${n["Writer/Translator"] || "-"} | ${n.Genres || "-"}</p>
+      <p class="star">${star(n["Total Score"])}</p>
       <button class="btn-blue" onclick="editNovel(${n.rowNumber})">Edit</button>
       <button class="btn-red" onclick="deleteNovel(${n.rowNumber})">Delete</button>
     </div>
