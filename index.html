@@ -129,6 +129,16 @@ button{
   font-weight:bold;
 }
 
+.borrowed{
+  color:#c62828;
+  font-weight:bold;
+}
+
+.available{
+  color:#2e7d32;
+  font-weight:bold;
+}
+
 .progress-bar{
   width:100%;
   height:25px;
@@ -200,8 +210,7 @@ button{
     <div class="card"><h3>📚 Total Novels</h3><div class="number" id="totalNovels">0</div></div>
     <div class="card"><h3>☑ Read Novels</h3><div class="number" id="readNovels">0</div></div>
     <div class="card"><h3>☐ Unread Novels</h3><div class="number" id="unreadNovels">0</div></div>
-    <div class="card"><h3>⭐ Average Score</h3><div class="number star" id="avgScore">-</div></div>
-    <div class="card"><h3>🔥 Average NC Score</h3><div class="number star" id="avgNCScore">-</div></div>
+    <div class="card"><h3>📦 Borrowed Novels</h3><div class="number" id="borrowedNovels">0</div></div>
   </div>
 
   <div class="section">
@@ -209,21 +218,6 @@ button{
     <div class="progress-bar">
       <div class="progress-fill" id="readingProgress">0%</div>
     </div>
-  </div>
-
-  <div class="section">
-    <h2>🏆 Top Rated Novels</h2>
-    <div id="topRated"></div>
-  </div>
-
-  <div class="section">
-    <h2>🔥 Highest NC Score Novels</h2>
-    <div id="topNC"></div>
-  </div>
-
-  <div class="section">
-    <h2>📚 Top Rated Covers</h2>
-    <div class="grid" id="topCoverList"></div>
   </div>
 
   <div class="section">
@@ -262,6 +256,12 @@ button{
         <h3 id="formTitle">Add Novel</h3>
 
         <label><input type="checkbox" id="checkBox"> Read</label>
+
+        <select id="Status">
+          <option value="Available">Available</option>
+          <option value="Borrowed">Borrowed</option>
+        </select>
+
         <input id="name" placeholder="Novel Name">
         <input id="Country" placeholder="Country">
         <input id="Publisher" placeholder="Publisher">
@@ -269,6 +269,7 @@ button{
         <input id="WriterTranslator" placeholder="Writer / Translator">
         <input id="Couple" placeholder="Main Couple">
         <input id="Genres" placeholder="Genres">
+
         <select id="TotalScore">
           <option value="">Total Score</option>
           <option>⭐</option>
@@ -277,6 +278,7 @@ button{
           <option>⭐⭐⭐⭐</option>
           <option>⭐⭐⭐⭐⭐</option>
         </select>
+
         <select id="NCScore">
           <option value="">NC Score</option>
           <option>⭐</option>
@@ -285,6 +287,7 @@ button{
           <option>⭐⭐⭐⭐</option>
           <option>⭐⭐⭐⭐⭐</option>
         </select>
+
         <textarea id="Synopsis" placeholder="Synopsis"></textarea>
         <input type="file" id="CoverFile" accept="image/*">
 
@@ -333,59 +336,29 @@ function showPage(id){
   document.getElementById(id).classList.remove("hidden");
 }
 
-function scoreValue(score){
-  return (String(score || "").match(/⭐/g) || []).length;
+function isBorrowed(n){
+  const status = String(n.Status || "").toLowerCase().trim();
+  return status === "borrowed" || status === "ถูกยืม" || status === "ยืม";
 }
 
-function star(score){
+function scoreText(score){
   return String(score || "").trim() || "-";
-}
-
-function avgStars(field){
-  const vals = novels.map(n=>scoreValue(n[field])).filter(v=>v>0);
-  if(vals.length === 0) return "-";
-  const avg = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
-  return "⭐".repeat(avg);
 }
 
 function renderDashboard(){
   const total = novels.length;
   const read = novels.filter(n=>n.checkValue === true).length;
   const unread = total - read;
+  const borrowed = novels.filter(n=>isBorrowed(n)).length;
   const progress = total ? Math.round((read/total)*100) : 0;
 
   document.getElementById("totalNovels").innerText = total;
   document.getElementById("readNovels").innerText = read;
   document.getElementById("unreadNovels").innerText = unread;
-  document.getElementById("avgScore").innerText = avgStars("Total Score");
-  document.getElementById("avgNCScore").innerText = avgStars("NC Score");
+  document.getElementById("borrowedNovels").innerText = borrowed;
 
   document.getElementById("readingProgress").style.width = progress + "%";
   document.getElementById("readingProgress").innerText = progress + "%";
-
-  const topRated = [...novels].filter(n=>scoreValue(n["Total Score"])>0)
-    .sort((a,b)=>scoreValue(b["Total Score"])-scoreValue(a["Total Score"]))
-    .slice(0,10);
-
-  document.getElementById("topRated").innerHTML = topRated.map((n,i)=>`
-    <p>${i+1}. <b>${n.name}</b><br><span class="star">${star(n["Total Score"])}</span></p>
-  `).join("");
-
-  const topNC = [...novels].filter(n=>scoreValue(n["NC Score"])>0)
-    .sort((a,b)=>scoreValue(b["NC Score"])-scoreValue(a["NC Score"]))
-    .slice(0,10);
-
-  document.getElementById("topNC").innerHTML = topNC.map((n,i)=>`
-    <p>${i+1}. <b>${n.name}</b><br><span class="star">${star(n["NC Score"])}</span></p>
-  `).join("");
-
-  document.getElementById("topCoverList").innerHTML = topRated.slice(0,6).map(n=>`
-    <div class="novel-card">
-      ${n.CoverURL ? `<img class="cover" src="${n.CoverURL}">` : `<div class="cover"></div>`}
-      <h3>${n.name}</h3>
-      <p class="star">${star(n["Total Score"])}</p>
-    </div>
-  `).join("");
 
   renderStats("Genres","genreStats");
   renderStats("Country","countryStats");
@@ -423,11 +396,11 @@ function renderLibrary(){
     <div class="novel-card">
       ${n.CoverURL ? `<img class="cover" src="${n.CoverURL}">` : `<div class="cover"></div>`}
       <h3>${n.name || "-"}</h3>
-      <p><b>Status:</b> <span class="${n.checkValue ? 'read':'unread'}">${n.checkValue ? 'Read':'Unread'}</span></p>
+      <p><b>Read Status:</b> <span class="${n.checkValue ? 'read':'unread'}">${n.checkValue ? 'Read':'Unread'}</span></p>
+      <p><b>Borrow Status:</b> <span class="${isBorrowed(n) ? 'borrowed':'available'}">${n.Status || "Available"}</span></p>
       <p><b>Country:</b> ${n.Country || "-"}</p>
       <p><b>Publisher:</b> ${n.Publisher || "-"}</p>
       <p><b>Writer:</b> ${n["Writer/Translator"] || "-"}</p>
-      <p><b>Total Score:</b> <span class="star">${star(n["Total Score"])}</span></p>
       <button onclick="openDetail(${n.rowNumber})">View Detail</button>
     </div>
   `).join("");
@@ -440,15 +413,16 @@ function openDetail(rowNumber){
   document.getElementById("detailContent").innerHTML = `
     ${n.CoverURL ? `<img class="cover" src="${n.CoverURL}">` : ""}
     <h2>${n.name || "-"}</h2>
-    <p><b>Status:</b> ${n.checkValue ? "Read":"Unread"}</p>
+    <p><b>Read Status:</b> ${n.checkValue ? "Read":"Unread"}</p>
+    <p><b>Borrow Status:</b> ${n.Status || "Available"}</p>
     <p><b>Country:</b> ${n.Country || "-"}</p>
     <p><b>Publisher:</b> ${n.Publisher || "-"}</p>
     <p><b>Year:</b> ${n.Year || "-"}</p>
     <p><b>Writer/Translator:</b> ${n["Writer/Translator"] || "-"}</p>
     <p><b>Couple:</b> ${n.Couple || "-"}</p>
     <p><b>Genres:</b> ${n.Genres || "-"}</p>
-    <p><b>Total Score:</b> <span class="star">${star(n["Total Score"])}</span></p>
-    <p><b>NC Score:</b> <span class="star">${star(n["NC Score"])}</span></p>
+    <p><b>Total Score:</b> <span class="star">${scoreText(n["Total Score"])}</span></p>
+    <p><b>NC Score:</b> <span class="star">${scoreText(n["NC Score"])}</span></p>
     <p><b>Synopsis:</b><br>${n.Synopsis || "-"}</p>
   `;
 
@@ -490,6 +464,7 @@ function hideForm(){
 
 function clearForm(){
   document.getElementById("checkBox").checked = false;
+  document.getElementById("Status").value = "Available";
   ["name","Country","Publisher","Year","WriterTranslator","Couple","Genres","TotalScore","NCScore","Synopsis"].forEach(id=>{
     document.getElementById(id).value = "";
   });
@@ -504,6 +479,7 @@ function editNovel(rowNumber){
   oldCoverURL = n.CoverURL || "";
 
   document.getElementById("checkBox").checked = n.checkValue;
+  document.getElementById("Status").value = n.Status || "Available";
   document.getElementById("name").value = n.name || "";
   document.getElementById("Country").value = n.Country || "";
   document.getElementById("Publisher").value = n.Publisher || "";
@@ -534,6 +510,7 @@ async function saveNovel(){
     action: editRowNumber ? "update" : "add",
     rowNumber: editRowNumber,
     check: document.getElementById("checkBox").checked,
+    Status: document.getElementById("Status").value,
     name: document.getElementById("name").value,
     Country: document.getElementById("Country").value,
     Publisher: document.getElementById("Publisher").value,
@@ -590,7 +567,7 @@ function renderAdminList(){
     <div class="card">
       <h3>${n.name || "-"}</h3>
       <p class="small">${n["Writer/Translator"] || "-"} | ${n.Genres || "-"}</p>
-      <p class="star">${star(n["Total Score"])}</p>
+      <p><b>Borrow Status:</b> <span class="${isBorrowed(n) ? 'borrowed':'available'}">${n.Status || "Available"}</span></p>
       <button class="btn-blue" onclick="editNovel(${n.rowNumber})">Edit</button>
       <button class="btn-red" onclick="deleteNovel(${n.rowNumber})">Delete</button>
     </div>
