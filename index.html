@@ -12,14 +12,12 @@ body{
   background:#fbf4fb;
   color:#222;
 }
-
 header{
   background:linear-gradient(135deg,#7b1fa2,#ec407a);
   color:white;
   padding:26px;
   text-align:center;
 }
-
 nav{
   background:white;
   padding:12px;
@@ -29,7 +27,6 @@ nav{
   top:0;
   z-index:10;
 }
-
 nav button{
   background:#8e24aa;
   color:white;
@@ -39,43 +36,36 @@ nav button{
   margin:4px;
   cursor:pointer;
 }
-
 .container{
   width:95%;
   max-width:1250px;
   margin:20px auto;
 }
-
 .dashboard{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
   gap:16px;
 }
-
 .card,.section,.novel-card{
   background:white;
   border-radius:18px;
   padding:18px;
   box-shadow:0 3px 12px rgba(0,0,0,0.1);
 }
-
 .card h3{
   margin:0;
   color:#8e24aa;
 }
-
 .number{
   font-size:34px;
   font-weight:bold;
   margin-top:12px;
 }
-
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
   gap:18px;
 }
-
 .cover{
   width:100%;
   height:310px;
@@ -83,14 +73,12 @@ nav button{
   background:#ddd;
   border-radius:14px;
 }
-
 label{
   display:block;
   font-weight:bold;
   margin-top:12px;
   color:#5e1675;
 }
-
 input,select,textarea{
   width:100%;
   box-sizing:border-box;
@@ -99,15 +87,12 @@ input,select,textarea{
   border:1px solid #ccc;
   border-radius:9px;
 }
-
 input[type="checkbox"]{
   width:auto;
 }
-
 textarea{
   height:120px;
 }
-
 button{
   background:#8e24aa;
   color:white;
@@ -117,40 +102,20 @@ button{
   margin:3px;
   cursor:pointer;
 }
-
 .btn-red{background:#c62828;}
 .btn-blue{background:#1565c0;}
 .btn-green{background:#2e7d32;}
 .btn-orange{background:#ef6c00;}
-
 .hidden{display:none;}
-
 .star{
   color:#ffb300;
   font-size:20px;
   letter-spacing:1px;
 }
-
-.read{
-  color:green;
-  font-weight:bold;
-}
-
-.unread{
-  color:red;
-  font-weight:bold;
-}
-
-.borrowed{
-  color:#c62828;
-  font-weight:bold;
-}
-
-.available{
-  color:#2e7d32;
-  font-weight:bold;
-}
-
+.read{color:green;font-weight:bold;}
+.unread{color:red;font-weight:bold;}
+.borrowed{color:#c62828;font-weight:bold;}
+.available{color:#2e7d32;font-weight:bold;}
 .progress-bar{
   width:100%;
   height:25px;
@@ -158,7 +123,6 @@ button{
   border-radius:20px;
   overflow:hidden;
 }
-
 .progress-fill{
   height:100%;
   background:linear-gradient(135deg,#8e24aa,#ec407a);
@@ -167,14 +131,12 @@ button{
   line-height:25px;
   font-weight:bold;
 }
-
 .stat-row{
   display:flex;
   justify-content:space-between;
   border-bottom:1px solid #eee;
   padding:8px 0;
 }
-
 .detail-modal{
   position:fixed;
   inset:0;
@@ -184,7 +146,6 @@ button{
   align-items:center;
   z-index:99;
 }
-
 .detail-box{
   background:white;
   width:92%;
@@ -194,12 +155,10 @@ button{
   border-radius:18px;
   padding:22px;
 }
-
 .small{
   font-size:13px;
   color:#666;
 }
-
 .form-note{
   background:#fff3e0;
   border-left:5px solid #ef6c00;
@@ -265,7 +224,7 @@ button{
 
     <div id="loginBox">
       <label>Admin Password</label>
-      <input type="password" id="adminPassword" placeholder="Enter admin password">
+      <input type="password" id="adminPassword" placeholder="Default password: Admin123">
       <button onclick="adminLogin()">Login</button>
     </div>
 
@@ -292,7 +251,7 @@ button{
         <h3 id="formTitle">Add Novel</h3>
 
         <div class="form-note">
-          Fill in or update the novel information below. Only Admin can add, edit, delete, and upload cover images.
+          This form is for adding or updating novel details. Please fill each field according to its label.
         </div>
 
         <label>Read Status</label>
@@ -305,19 +264,19 @@ button{
         </select>
 
         <label>Novel Name</label>
-        <input id="name" placeholder="Example: His Honey">
+        <input id="name" placeholder="Novel title">
 
         <label>Country</label>
-        <input id="Country" placeholder="Example: Thailand / China / Korea / Japan">
+        <input id="Country" placeholder="Country">
 
         <label>Publisher</label>
         <input id="Publisher" placeholder="Publisher name">
 
         <label>Publication Year</label>
-        <input id="Year" placeholder="Example: 2024">
+        <input id="Year" placeholder="Year">
 
         <label>Writer / Translator</label>
-        <input id="WriterTranslator" placeholder="Writer or translator name">
+        <input id="WriterTranslator" placeholder="Writer or translator">
 
         <label>Main Couple</label>
         <input id="Couple" placeholder="Main couple / characters">
@@ -377,9 +336,29 @@ const API_URL = "https://script.google.com/macros/s/AKfycby0kD-tsevNKbEzQn9lQnMa
 
 let novels = [];
 let isAdmin = false;
-let currentAdminPassword = "";
 let editRowNumber = null;
 let oldCoverURL = "";
+
+function getAdminPassword(){
+  return localStorage.getItem("adminPassword") || "Admin123";
+}
+
+function setAdminPassword(newPassword){
+  localStorage.setItem("adminPassword", newPassword);
+}
+
+async function loadNovels(){
+  try{
+    const res = await fetch(API_URL);
+    novels = await res.json();
+    renderDashboard();
+    renderLibrary();
+    renderAdminList();
+  }catch(error){
+    alert("Cannot load data from Google Sheet. Please check Apps Script deployment.");
+    console.error(error);
+  }
+}
 
 async function postAPI(data){
   const res = await fetch(API_URL, {
@@ -387,14 +366,6 @@ async function postAPI(data){
     body:JSON.stringify(data)
   });
   return await res.json();
-}
-
-async function loadNovels(){
-  const res = await fetch(API_URL);
-  novels = await res.json();
-  renderDashboard();
-  renderLibrary();
-  renderAdminList();
 }
 
 function showPage(id){
@@ -503,28 +474,21 @@ function closeDetail(){
   document.getElementById("detailModal").style.display = "none";
 }
 
-async function adminLogin(){
+function adminLogin(){
   const password = document.getElementById("adminPassword").value;
 
-  const result = await postAPI({
-    action:"login",
-    password:password
-  });
-
-  if(result.success){
+  if(password === getAdminPassword()){
     isAdmin = true;
-    currentAdminPassword = password;
     document.getElementById("loginBox").classList.add("hidden");
     document.getElementById("adminBox").classList.remove("hidden");
     renderAdminList();
   }else{
-    alert(result.message || "Incorrect password");
+    alert("Incorrect admin password");
   }
 }
 
 function adminLogout(){
   isAdmin = false;
-  currentAdminPassword = "";
   document.getElementById("loginBox").classList.remove("hidden");
   document.getElementById("adminBox").classList.add("hidden");
   document.getElementById("adminPassword").value = "";
@@ -534,31 +498,34 @@ function togglePasswordBox(){
   document.getElementById("passwordBox").classList.toggle("hidden");
 }
 
-async function changeAdminPassword(){
+function changeAdminPassword(){
   const currentPassword = document.getElementById("currentPassword").value;
   const newPassword = document.getElementById("newPassword").value;
   const confirmNewPassword = document.getElementById("confirmNewPassword").value;
+
+  if(currentPassword !== getAdminPassword()){
+    alert("Current password is incorrect");
+    return;
+  }
+
+  if(newPassword.length < 4){
+    alert("New password must be at least 4 characters");
+    return;
+  }
 
   if(newPassword !== confirmNewPassword){
     alert("New password and confirmation do not match");
     return;
   }
 
-  const result = await postAPI({
-    action:"changePassword",
-    currentPassword:currentPassword,
-    newPassword:newPassword
-  });
+  setAdminPassword(newPassword);
 
-  alert(result.message);
+  document.getElementById("currentPassword").value = "";
+  document.getElementById("newPassword").value = "";
+  document.getElementById("confirmNewPassword").value = "";
+  document.getElementById("passwordBox").classList.add("hidden");
 
-  if(result.success){
-    currentAdminPassword = newPassword;
-    document.getElementById("currentPassword").value = "";
-    document.getElementById("newPassword").value = "";
-    document.getElementById("confirmNewPassword").value = "";
-    document.getElementById("passwordBox").classList.add("hidden");
-  }
+  alert("Admin password changed successfully");
 }
 
 function showForm(){
@@ -584,16 +551,15 @@ function clearForm(){
 
 function confirmAdminPassword(message){
   const password = prompt(message || "Enter admin password to confirm:");
-  if(!password) return null;
-  return password;
+  if(password !== getAdminPassword()){
+    alert("Incorrect admin password");
+    return false;
+  }
+  return true;
 }
 
 function editNovel(rowNumber){
-  const confirmPassword = confirmAdminPassword("Enter admin password to edit this novel:");
-  if(confirmPassword !== currentAdminPassword){
-    alert("Incorrect admin password");
-    return;
-  }
+  if(!confirmAdminPassword("Enter admin password to edit this novel:")) return;
 
   const n = novels.find(x=>Number(x.rowNumber)===Number(rowNumber));
   if(!n) return;
@@ -631,7 +597,6 @@ async function saveNovel(){
 
   const data = {
     action: editRowNumber ? "update" : "add",
-    adminPassword: currentAdminPassword,
     rowNumber: editRowNumber,
     check: document.getElementById("checkBox").checked,
     Status: document.getElementById("Status").value,
@@ -672,17 +637,11 @@ function toBase64(file){
 }
 
 async function deleteNovel(rowNumber){
-  const confirmPassword = confirmAdminPassword("Enter admin password to delete this novel:");
-  if(confirmPassword !== currentAdminPassword){
-    alert("Incorrect admin password");
-    return;
-  }
-
+  if(!confirmAdminPassword("Enter admin password to delete this novel:")) return;
   if(!confirm("Delete this novel?")) return;
 
   const result = await postAPI({
     action:"delete",
-    adminPassword: currentAdminPassword,
     rowNumber:rowNumber
   });
 
